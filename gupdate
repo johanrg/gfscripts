@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Get the directory where this script is located. 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+#Read the project directory and warname from the files in the script directory.
+if [ -f "$DIR/project" ]; then
+	PROJECT=$(cat "$DIR/project");
+else
+	echo "No project directory defined, use ginstall to set up a project";
+	exit 1;
+fi
+
+if [ -f "$DIR/warname" ]; then
+	WARNAME=$(cat "$DIR/warname"); 
+else
+	echo "nothing deployed";
+	exit 1; 
+fi
+
+pushd $PROJECT
+mvn package 
+rc=$?
+if [[ $rc -ne 0 ]] ; then
+        echo '###### BUILD ERROR ######';
+        exit $rc
+fi
+popd
+asadmin redeploy --name $WARNAME $PROJECT/target/$WARNAME.war
+

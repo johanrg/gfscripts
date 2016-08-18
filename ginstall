@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Get the directory where this script is located.
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [ -z "$1" ]  && [ -z "$2" ]; then
+	echo "Glassfish war installer"
+	echo "This script runs mvn package in your project directory and asadmin deploy"
+	echo "OBS! This is only for one project at a time."
+	echo
+	echo "ginstall <path to project root dir> <name of application without .war>"
+	echo
+	echo "The following helper scripts do not need any parameters since ginstall will store the project dir and war name"
+	echo "gupdate: runs maven package in your project dir and redeploys the war file"
+	echo "gclean: runs maven clean in your project dir"
+	echo "gremove: runs maven clean and asadmin undeploy on the war file"
+	exit 1
+fi
+
+PROJECT=$1
+WARNAME=$2
+
+# Write out the parameters to two files in the script folder
+echo $1 > $DIR/project
+echo $2 > $DIR/warname
+
+pushd $PROJECT
+mvn package
+rc=$?
+if [[ $rc -ne 0 ]] ; then
+        echo '###### BUILD ERROR ######';
+        exit $rc
+fi
+popd
+asadmin deploy $PROJECT/target/$WARNAME.war
